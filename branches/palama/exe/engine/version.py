@@ -25,7 +25,7 @@ Version Information
 
 project        = "Palama"
 release        = "1.04.1"
-revision       = "1.3605intef6.3-based"
+revision       = "2.3605intef6.3-based"
 
 version = release + "." + revision
 
