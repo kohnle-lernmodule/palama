@@ -299,9 +299,15 @@ class Block(Renderable):
                 html += u'<img alt="%s" class="iDevice_icon" ' % _('IDevice Icon')
                 html += u" src=\"/style/"+style
                 html += "/icon_"+self.idevice.icon+".gif\"/>\n"
-            html += u"<span class=\"iDeviceTitle\"><strong>"
-            html += self.idevice.title
-            html += u"</strong></span>\n"
+            html += u"<span class=\"iDeviceTitle\">"
+#changed kthamm 111221 to enable alternative titles which differ from Idevice names
+            if self.idevice.title in ("Cloze Activity", "Image Gallery"):
+              html += self.idevice.alt_title
+
+            else:
+              html += self.idevice.title
+#end change
+            html += u"</span>\n"
         html += self.renderViewContent()
         html += self.renderViewButtons()
         html += u"</div>\n"
@@ -319,9 +325,15 @@ class Block(Renderable):
             if self.idevice.icon:
                 html += u'<img alt="%s" class="iDevice_icon" ' % _('iDevice icon')
                 html += u" src=\"icon_"+self.idevice.icon+".gif\"/>\n"
-            html += u"<span class=\"iDeviceTitle\"><strong>"
-            html += self.idevice.title
-            html += u"</strong></span>\n"
+            html += u"<span class=\"iDeviceTitle\">"
+#changed kthamm 111221 to enable alternative titles which differ from Idevice names
+            if self.idevice.title in ("Cloze Activity", "Image Gallery"):
+              html += self.idevice.alt_title
+
+            else:
+              html += self.idevice.title
+#end change
+            html += u"</span>\n"
         html += self.renderViewContent()
         html += u"</div>\n"
         return html

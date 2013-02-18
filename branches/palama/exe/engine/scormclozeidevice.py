@@ -146,6 +146,7 @@ completed. Default text will be entered if there are no changes to this field.
         self.emphasis = Idevice.SomeEmphasis
         self.systemResources += ["common.js"]
         self.isCloze = True
+        self.icon = u'activity'
 
 
     # Properties

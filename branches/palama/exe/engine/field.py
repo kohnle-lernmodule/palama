@@ -3925,6 +3925,193 @@ to provide the learner with.""")
 
 
 # ===========================================================================
+#added ktlm 130108 option field with individual feedback for correct/incorrect
+class SelectOptionIndFeedbackField(Field):
+    """
+    A Question is built up of question and options.  Each
+    option can be rendered as an XHTML element
+    Used by the SelectQuestionField, as part of the Multi-Select iDevice.
+    """
+    persistenceVersion = 1
+
+    def __init__(self, question, idevice, name="", instruc=""):
+        """
+        Initialize 
+        """
+        Field.__init__(self, name, instruc)
+        self.isCorrect = False
+        self.question  = question
+        self.idevice = idevice
+
+        self.answerTextArea    = TextAreaField(x_(u'Options'), 
+                                     question._optionInstruc, u'')
+        self.answerTextArea.idevice = idevice
+
+#added by lernmodule.net 130108 to store individual feedback
+        self.fbCorrect    = "Correct"
+        self.fbIncorrect    = "Incorrect"
+#end added by lernmodule.net 130108 to store individual feedback
+
+#added lernmodule.net 130108 text areas for feedback
+        self.answerFeedbackCorrTextArea    = TextAreaField(x_(u'Correct'), 
+                                     question._optionInstruc, u'')
+        self.answerFeedbackCorrTextArea.idevice = idevice
+        self.answerFeedbackIncorrTextArea    = TextAreaField(x_(u'Incorrect'), 
+                                     question._optionInstruc, u'')
+        self.answerFeedbackIncorrTextArea.idevice = idevice
+#END: added lernmodule.net 130108 text areas for feedback
+
+
+    def getResourcesField(self, this_resource):
+        """
+        implement the specific resource finding mechanism for this iDevice:
+        """
+        # be warned that before upgrading, this iDevice field could not exist:
+        if hasattr(self, 'answerTextArea')\
+        and hasattr(self.answerTextArea, 'images'):
+            for this_image in self.answerTextArea.images:
+                if hasattr(this_image, '_imageResource') \
+                and this_resource == this_image._imageResource:
+                    return self.answerTextArea
+
+        return None
+      
+    def getRichTextFields(self):
+        """
+        Like getResourcesField(), a general helper to allow nodes to search 
+        through all of their fields without having to know the specifics of each
+        iDevice type.  
+        """
+        fields_list = []
+        if hasattr(self, 'answerTextArea'):
+            fields_list.append(self.answerTextArea)
+
+        return fields_list
+        
+
+    def upgradeToVersion1(self):
+        """
+        Upgrades to somewhere before version 0.25 (post-v0.24) 
+        to reflect the new TextAreaFields now in use for images.
+        """ 
+        self.answerTextArea    = TextAreaField(x_(u'Options'), 
+                                     self.question._optionInstruc, 
+                                     self.answer)
+        self.answerTextArea.idevice = self.idevice
+
+#===============================================================================
+
+class SelectQuestionIndFeedbackField(Field):
+    """
+    A Question is built up of question and Options.
+    Used as part of the Multi-Select iDevice.
+    """
+
+    persistenceVersion = 1
+    
+    def __init__(self, idevice, name, instruc=""):
+        """
+        Initialize 
+        """
+        Field.__init__(self, name, instruc)
+
+        self.idevice              = idevice
+
+        self._questionInstruc      = x_(u"""Enter the question stem. 
+The question should be clear and unambiguous. Avoid negative premises as these 
+can tend to confuse learners.""")
+        self.questionTextArea = TextAreaField(x_(u'Question:'), 
+                                    self.questionInstruc, u'')
+        self.questionTextArea.idevice = idevice
+
+        self.options              = []
+        self._optionInstruc        = x_(u"""Enter the available choices here. 
+You can add options by clicking the "Add another option" button. Delete options by 
+clicking the red X next to the option.""")
+
+        self._correctAnswerInstruc = x_(u"""Select as many correct answer 
+options as required by clicking the check box beside the option.""")
+
+        self.feedbackInstruc       = x_(u"""Type in the feedback you want 
+to provide the learner with.""")
+        self.feedbackTextArea = TextAreaField(x_(u'Feedback:'), 
+                                    self.feedbackInstruc, u'')
+        self.feedbackTextArea.idevice = idevice
+    
+    
+    # Properties
+    questionInstruc      = lateTranslate('questionInstruc')
+    optionInstruc        = lateTranslate('optionInstruc')
+    correctAnswerInstruc = lateTranslate('correctAnswerInstruc')
+    
+    def addOption(self):
+        """
+        Add a new option to this question. 
+        """
+#changed by lernmodule 130108 to take feedback option field
+        option = SelectOptionIndFeedbackField(self, self.idevice)
+#END changed by lernmodule 130108 to take feedback option field
+        self.options.append(option)
+
+    def getResourcesField(self, this_resource):
+        """
+        implement the specific resource finding mechanism for this iDevice:
+        """
+        # be warned that before upgrading, this iDevice field could not exist:
+        if hasattr(self, 'questionTextArea')\
+        and hasattr(self.questionTextArea, 'images'):
+            for this_image in self.questionTextArea.images:
+                if hasattr(this_image, '_imageResource') \
+                and this_resource == this_image._imageResource:
+                    return self.questionTextArea
+
+        # be warned that before upgrading, this iDevice field could not exist:
+        if hasattr(self, 'feedbackTextArea')\
+        and hasattr(self.feedbackTextArea, 'images'):
+            for this_image in self.feedbackTextArea.images:
+                if hasattr(this_image, '_imageResource') \
+                and this_resource == this_image._imageResource:
+                    return self.feedbackTextArea
+
+        for this_option in self.options:
+            this_field = this_option.getResourcesField(this_resource)
+            if this_field is not None:
+                return this_field
+
+        return None
+
+      
+    def getRichTextFields(self):
+        """
+        Like getResourcesField(), a general helper to allow nodes to search 
+        through all of their fields without having to know the specifics of each
+        iDevice type.  
+        """
+        fields_list = []
+        if hasattr(self, 'questionTextArea'):
+            fields_list.append(self.questionTextArea)
+        if hasattr(self, 'feedbackTextArea'):
+            fields_list.append(self.feedbackTextArea)
+
+        for this_option in self.options:
+            fields_list.extend(this_option.getRichTextFields())
+
+        return fields_list
+        
+    def upgradeToVersion1(self):
+        """
+        Upgrades to somewhere before version 0.25 (post-v0.24) 
+        to reflect the new TextAreaFields now in use for images.
+        """ 
+        self.questionTextArea = TextAreaField(x_(u'Question:'), 
+                                    self.questionInstruc, self.question)
+        self.questionTextArea.idevice = self.idevice
+        self.feedbackTextArea = TextAreaField(x_(u'Feedback:'), 
+                                    self.feedbackInstruc, self.feedback)
+        self.feedbackTextArea.idevice = self.idevice
+
+
+# ===========================================================================
 
 class AttachmentField(Field):
     """

@@ -250,7 +250,7 @@ class IdeviceStore:
         from exe.engine.truefalseidevice import TrueFalseIdevice 
         # converting ImageWithTextIdevice -> FreeTextIdevice:
         #from exe.engine.imagewithtextidevice  import ImageWithTextIdevice
-        from exe.engine.wikipediaidevice import WikipediaIdevice
+        #from exe.engine.wikipediaidevice import WikipediaIdevice
         from exe.engine.attachmentidevice import AttachmentIdevice
         from exe.engine.titleidevice import TitleIdevice
         from exe.engine.galleryidevice import GalleryIdevice
@@ -262,9 +262,9 @@ class IdeviceStore:
         # converting Maths Idevice -> FreeTextIdevice:
         #from exe.engine.mathidevice           import MathIdevice
         from exe.engine.multichoiceidevice import MultichoiceIdevice
-        from exe.engine.rssidevice import RssIdevice
+        #from exe.engine.rssidevice import RssIdevice
         from exe.engine.multiselectidevice import MultiSelectIdevice
-        from exe.engine.appletidevice import AppletIdevice
+        #from exe.engine.appletidevice import AppletIdevice
         from exe.engine.flashmovieidevice import FlashMovieIdevice
         from exe.engine.quiztestidevice import QuizTestIdevice
         # JR
@@ -300,8 +300,8 @@ class IdeviceStore:
         #factoryExtendedIdevices.append(ImageWithTextIdevice(defaultImage))
         factoryExtendedIdevices.append(ImageMagnifierIdevice(defaultImage))
         defaultImage = unicode(self.config.webDir / "images" / "sunflowers.jpg")
-        defaultSite = 'http://%s.wikipedia.org/' % self.config.locale
-        factoryExtendedIdevices.append(WikipediaIdevice(defaultSite))
+        #defaultSite = 'http://%s.wikipedia.org/' % self.config.locale
+        #factoryExtendedIdevices.append(WikipediaIdevice(defaultSite))
         #JR: Eliminamos este iDevices de los extendidos
         #factoryExtendedIdevices.append(AttachmentIdevice())
         factoryExtendedIdevices.append(GalleryIdevice())
@@ -314,9 +314,9 @@ class IdeviceStore:
         #factoryExtendedIdevices.append(MathIdevice())
         #JR: Eliminamos este iDevices de los extendidos
         #factoryExtendedIdevices.append(MultimediaIdevice())
-        factoryExtendedIdevices.append(RssIdevice())
+        #factoryExtendedIdevices.append(RssIdevice())
         factoryExtendedIdevices.append(MultiSelectIdevice())
-        factoryExtendedIdevices.append(AppletIdevice())
+        #factoryExtendedIdevices.append(AppletIdevice())
         #JR: Eliminamos este iDevices de los extendidos
         #factoryExtendedIdevices.append(FlashMovieIdevice())
         #modification lernmodule.net
@@ -353,12 +353,18 @@ class IdeviceStore:
         from exe.engine.scormmultiselectidevice import ScormMultiSelectIdevice
         from exe.engine.scormdropdownidevice import ScormDropDownIdevice
         from exe.engine.scormmulticlozeidevice import ScormMultiClozeIdevice
+        from exe.engine.opinionidevice        import OpinionIdevice
+
+        from exe.engine.dropdownidevice import DropDownIdevice
+        from exe.engine.scormmultiselectindfeedbackidevice import ScormMultiSelectIndFeedbackIdevice
         ExeLearninglusExtendedIdevices = []
         ExeLearninglusExtendedIdevices.append(ScormClozeIdevice())
         ExeLearninglusExtendedIdevices.append(ScormMultiSelectIdevice())
         ExeLearninglusExtendedIdevices.append(ScormDropDownIdevice())
         ExeLearninglusExtendedIdevices.append(ScormMultiClozeIdevice())
-
+        ExeLearninglusExtendedIdevices.append(OpinionIdevice())
+        ExeLearninglusExtendedIdevices.append(DropDownIdevice())
+        ExeLearninglusExtendedIdevices.append(ScormMultiSelectIndFeedbackIdevice())
         return ExeLearninglusExtendedIdevices
         
     def __loadExtended(self):
@@ -385,6 +391,8 @@ class IdeviceStore:
         for idevice in self.__getExeLearningplusiDevices():
             self.extended.append(idevice)
         #END modifications lernmodule.net
+
+
 
 
         # generate new ids for these iDevices, to avoid any clashes
@@ -547,7 +555,7 @@ _(u"""Use feedback to provide a summary of the points covered in the reading,
 or as a starting point for further analysis of the reading by posing a question 
 or providing a statement to begin a debate.""")))
 
-        idevices.append(readingAct)
+        #idevices.append(readingAct)
     
         objectives = GenericIdevice(_(u"Objectives"), 
                                     u"objectives",
@@ -560,7 +568,72 @@ learning tasks."""),
 
         objectives.addField(TextAreaField(_(u"Objectives"),
 _(u"""Type the learning objectives for this resource.""")))
-        idevices.append(objectives)
+        #idevices.append(objectives)
+        #added kthamm summary idevice 111027
+        devsummary = GenericIdevice(_(u"Summary"), 
+                                    u"devsummary",
+                                    _(u"University of Auckland"), 
+_(u"""Provide a summary of the learning resource."""), 
+                                    u"")
+        devsummary.emphasis = Idevice.SomeEmphasis
+
+        devsummary.addField(TextAreaField(_(u"Summary"),
+_(u"""Type a brief summary for this resource.""")))
+        idevices.append(devsummary)
+        #end added
+
+        #added kthamm preview idevice 111028 
+        devpreview = GenericIdevice(_(u"Preview"), 
+                                    u"devpreview",
+                                    _(u"University of Auckland"), 
+_(u"""A preview to introduce the learning resource"""), 
+                                    u"")
+        devpreview.emphasis = Idevice.SomeEmphasis
+
+        devpreview.addField(TextAreaField(_(u"Preview"),
+_(u"""Type the learning objectives for this resource.""")))
+        idevices.append(devpreview)
+        #end added
+
+        #added kthamm 111028 resource idevice
+        devresource = GenericIdevice(_(u"Resource"), 
+                                    u"devresource",
+                                    _(u"University of Auckland"), 
+                                    x_(u""" """),
+                                    x_(u" ")) 
+        devresource.emphasis = Idevice.SomeEmphasis
+        devresource.addField(TextAreaField(_(u"Resource"), 
+_(u"""Enter an URL to a resource, you want to provide. Mark the URL and click on the link button in the editor""")))
+#        devresource.addField(TextAreaField(_(u"Activity"), 
+#_(u"""Describe the tasks related to the reading learners should undertake. 
+#This helps demonstrate relevance for learners.""")))
+#
+#        devresource.addField(FeedbackField(_(u"Feedback"), 
+#_(u"""Use feedback to provide a summary of the points covered in the reading, 
+#or as a starting point for further analysis of the reading by posing a question 
+#or providing a statement to begin a debate.""")))
+
+        idevices.append(devresource)
+        #end added
+ 
+
+        #added kthamm 111028 discussion idevice
+        devdiscussion = GenericIdevice(_(u"Discussion"), 
+                                    u"devdiscussion",
+                                    _(u"University of Auckland"), 
+                                    x_(u""" """),
+                                    x_(u" ")) 
+        devdiscussion.emphasis = Idevice.SomeEmphasis
+        devdiscussion.addField(TextAreaField(_(u"Discussion"), 
+_(u"""Enter the details of the reading including reference details. The 
+referencing style used will depend on the preference of your faculty or 
+department.""")))
+        devdiscussion.addField(TextAreaField(_(u"Activity"), 
+_(u"""Describe the tasks related to the reading learners should undertake. 
+This helps demonstrate relevance for learners.""")))
+
+        idevices.append(devdiscussion)
+        #end added
 
         preknowledge = GenericIdevice(_(u"Preknowledge"), 
                                       u"preknowledge",
@@ -575,7 +648,7 @@ pre-knowledge can be: <ul>
         preknowledge.addField(TextAreaField(_(u"Preknowledge"), 
 _(u"""Describe the prerequisite knowledge learners should have to effectively
 complete this learning.""")))
-        idevices.append(preknowledge)
+        #idevices.append(preknowledge)
         
         activity = GenericIdevice(_(u"Activity"), 
                                   u"activity",
@@ -587,7 +660,7 @@ u"")
         activity.emphasis = Idevice.SomeEmphasis
         activity.addField(TextAreaField(_(u"Activity"),
 _(u"""Describe the tasks the learners should complete.""")))
-        idevices.append(activity)
+        #idevices.append(activity)
 
         self.save()
         return idevices

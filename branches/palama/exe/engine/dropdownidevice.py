@@ -19,7 +19,7 @@
 # ===========================================================================
 
 """
-ScormDropDown Idevice. 
+DropDown Idevice. 
 """
 
 import logging
@@ -32,7 +32,7 @@ import re
 log = logging.getLogger(__name__)
 
 # ===========================================================================
-class ScormDropDownIdevice(Idevice):
+class DropDownIdevice(Idevice):
     """
     Holds a paragraph with words missing that the student must fill in
     """
@@ -43,7 +43,10 @@ class ScormDropDownIdevice(Idevice):
         """
         Sets up the idevice title and instructions etc
         """
-        Idevice.__init__(self, x_(u"SCORM Test Dropdown"),
+#changed lernmodule.net 130116
+#        Idevice.__init__(self, x_(u"Dropdown Activity"),
+        Idevice.__init__(self, _(u"Dropdown Activity"),
+#END changed lernmodule.net 130116
                          x_(u"University of Auckland"), 
                          x_(u"<p>Cloze exercises are texts or "
                              "sentences where students must fill in "
@@ -113,19 +116,40 @@ class ScormDropDownIdevice(Idevice):
                             u"question",
                              parentNode)
         self.instructionsForLearners = TextAreaField(
-            x_(u'Instructions'),
+#changed lernmodule.net 130116
+#            x_(u'Instructions'),
+            _(u'Instructions'),
+#END changed lernmodule.net 130116
+#changed lernmodule.net 130114
 #translated
+#instruction for exercise instructions
 #            x_(u"""Hier k&ouml;nnen Sie eine Aufgabenstellung eingeben oder die Standardanweisung &uuml;bernehmen."""),
             x_(u"""Provide instruction how to complete the excercise or take the default text."""),
+#changed lernmodule.net 130116
+#            x_(u"""Dropdown main instructions"""),
+#            _(u"""Dropdown main instructions"""),
+#END changed lernmodule.net 130116
+#END instruction for exercise instructions
+#instruction on exercise 
 #            x_(u"""W&auml;hle im folgenden Abschnitt die richtigen Antworten aus!"""))
-			x_(u'Choose the correct answers in the paragraph below.'))
+            x_(u'Choose the correct answers in the paragraph below.'))
+#changed lernmodule.net 130116
+#            x_(u"""Dropdown exercise instructions"""))
+#            _(u"""Dropdown exercise instructions"""))
+#END changed lernmodule.net 130116
+#END instruction on exercise 
         self.instructionsForLearners.idevice = self
         self._content = ClozeField(x_(u'Cloze'), 
+#instruction on gap creation
             x_(u"""<p>To create a gap with answer options, write the correct answer and then separated by
                 '|' the wrong answers:
                 true|false|false|false ...
                 Mark all answer options and click on the Hide/Show Word button below.
                 Hint: answers may contain spaces.</p>"""))
+#changed lernmodule.net 130116
+#            x_(u"""Dropdown gap creation instructions"""))
+#            _(u"""Dropdown gap creation instructions"""))
+#END changed lernmodule.net 130116
 #            x_(u"""<p>Um eine L&uuml;cke mit Antwortm&ouml;glichkeiten zu erzeugen,
 #                schreiben sie zuerst die richtige Antwort und dann getrennt
 #                mit '|' die falschen Antworten, also folgenderma&szlig;en:
@@ -138,6 +162,8 @@ class ScormDropDownIdevice(Idevice):
 #                mit dem Zeichen '|' tippen (auf deutschen Tastaturen meist
 #                neben dem 'Y').
 #                </p>"""))
+#END instruction on gap creation
+#END changed lernmodule.net 130114
         self._content.idevice = self
         self.feedback = TextAreaField(x_(u'Feedback'),
             x_(u'Enter any feedback you wish to provide the learner '
@@ -146,7 +172,6 @@ class ScormDropDownIdevice(Idevice):
         self.emphasis = Idevice.SomeEmphasis
         self.systemResources += ["common.js"]
         self.isCloze = True
-        self.icon = u'activity'
 
 
     # Properties

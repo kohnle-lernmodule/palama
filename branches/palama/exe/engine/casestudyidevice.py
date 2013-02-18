@@ -213,6 +213,7 @@ of the case and if so how are ideas feed back to the class</li></ul>"""),
                          u"casestudy")
         self.emphasis     = Idevice.SomeEmphasis
         
+        self.icon = u'casestudy'
         self._storyInstruc = x_(u"""Create the case story. A good case is one 
 that describes a controversy or sets the scene by describing the characters 
 involved and the situation. It should also allow for some action to be taken 

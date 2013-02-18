@@ -90,6 +90,16 @@ def loadNodesIdevices(node, s):
                     idevice = burstIdevice('Activity', i, node)
                 elif i.attrMap['class']=="objectivesIdevice":
                     idevice = burstIdevice('Objectives', i, node)
+                #added kthamm 111028 
+                elif i.attrMap['class']=="devsummaryIdevice":
+                    idevice = burstIdevice('Devsummary', i, node)
+                elif i.attrMap['class']=="devpreviewIdevice":
+                    idevice = burstIdevice('Devpreview', i, node)
+                elif i.attrMap['class']=="devresourceIdevice":
+                    idevice = burstIdevice('Devresource', i, node)
+                elif i.attrMap['class']=="devdiscussionIdevice":
+                    idevice = burstIdevice('Devdiscussion', i, node)
+                #end added kthamm
                 elif i.attrMap['class']=="preknowledgeIdevice":
                     idevice = burstIdevice('Preknowledge', i, node)
                 elif i.attrMap['class']=="readingIdevice":
@@ -310,8 +320,7 @@ class Package(Persistable):
 
         self.root          = Node(self, None, _(u"Home"))
         self.currentNode   = self.root
-#        self.style         = u"default"
-        self.style         = u"INTEF"
+        self.style         = u"default"
         self.isChanged     = False
         self.idevices      = []
         self.dublinCore    = DublinCore()

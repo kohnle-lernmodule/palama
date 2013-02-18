@@ -190,10 +190,10 @@ class GalleryBlock(Block):
         if self.idevice is not None and self.idevice.parentNode is not None:
             this_package = self.idevice.parentNode.package
         html = [u'<div class="iDevice">',
-                common.formField('textInput', this_package, _('Title'),
-                                 "title"+self.id, '',
-                                 self.idevice.titleInstruc,
-                                 self.idevice.title),
+#                common.formField('textInput', this_package, _('Title'),
+#                                 "title"+self.id, '',
+#                                 self.idevice.titleInstruc,
+#                                 self.idevice.title),
                 u'<div class="block">',
                 u'<input type="button" ',
                 u'onclick="addGalleryImage(\'%s\')"' % self.id,
@@ -341,12 +341,13 @@ class GalleryBlock(Block):
             html  = [u'<div class="iDevice emphasis%s" ' %
                      unicode(self.idevice.emphasis),
                      u'>',
+                     u'<div style="display:none>' #added kthamm 111220
                      u'<img alt="%s" ' % _(u'IDevice Icon'),
                      u'     class="iDevice_icon" ',
                      u'src="icon_'+self.idevice.icon+'.gif" />'
                      u'<h2 class="iDeviceTitle">',      
                      self.idevice.title,
-                     '</h2>']
+                     '</h2></div>']
             html += [self.renderViewContent()]
             html += [u'</div>']
             return u'\n    '.join(html)
