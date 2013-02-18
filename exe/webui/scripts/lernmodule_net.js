@@ -861,9 +861,13 @@ function ScormMultiSelectSubmit(num, ident, b_submit){
 			ele.style.outline = "";
 			if (truefalse==0){
 				poss_corr++;
-				document.getElementById("ans" + ident + i.toString() + "_fbic").style.display = "inline";
+				if (showIndFeedback){ 
+					document.getElementById("ans" + ident + i.toString() + "_fbic").style.display = "inline";
+				}
 			} else {
-				document.getElementById("ans" + ident + i.toString() + "_fbc").style.display = "inline";
+				if (showIndFeedback){ 
+					document.getElementById("ans" + ident + i.toString() + "_fbc").style.display = "inline";
+				}
 			}
 			suspend_string += "0";
 		}
