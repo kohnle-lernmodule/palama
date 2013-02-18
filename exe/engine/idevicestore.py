@@ -288,6 +288,15 @@ class IdeviceStore:
         from exe.engine.orientacionestutoriafpdidevice import OrientacionestutoriafpdIdevice
         from exe.engine.freetextfpdidevice import FreeTextfpdIdevice
         
+        # eXelearningPlus iDevices
+        from exe.engine.scormclozeidevice import ScormClozeIdevice
+        from exe.engine.scormmultiselectidevice import ScormMultiSelectIdevice
+        from exe.engine.scormdropdownidevice import ScormDropDownIdevice
+        from exe.engine.scormmulticlozeidevice import ScormMultiClozeIdevice
+        from exe.engine.opinionidevice        import OpinionIdevice
+        from exe.engine.dropdownidevice import DropDownIdevice
+        from exe.engine.scormmultiselectindfeedbackidevice import ScormMultiSelectIndFeedbackIdevice
+
         factoryExtendedIdevices = []
         
         factoryExtendedIdevices.append(FreeTextIdevice())
@@ -342,30 +351,18 @@ class IdeviceStore:
         factoryExtendedIdevices.append(OrientacionesalumnadofpdIdevice())
         factoryExtendedIdevices.append(OrientacionestutoriafpdIdevice())
         factoryExtendedIdevices.append(FreeTextfpdIdevice())
+
+        # eXelearningPlus
+        factoryExtendedIdevices.append(ScormClozeIdevice())
+        factoryExtendedIdevices.append(ScormMultiSelectIdevice())
+        factoryExtendedIdevices.append(ScormDropDownIdevice())
+        factoryExtendedIdevices.append(ScormMultiClozeIdevice())
+        factoryExtendedIdevices.append(OpinionIdevice())
+        factoryExtendedIdevices.append(DropDownIdevice())
+        factoryExtendedIdevices.append(ScormMultiSelectIndFeedbackIdevice())
         
         return factoryExtendedIdevices
 
-    def __getExeLearningplusiDevices(self):
-        """
-        load iDevices from lernmodule.net
-        """
-        from exe.engine.scormclozeidevice import ScormClozeIdevice
-        from exe.engine.scormmultiselectidevice import ScormMultiSelectIdevice
-        from exe.engine.scormdropdownidevice import ScormDropDownIdevice
-        from exe.engine.scormmulticlozeidevice import ScormMultiClozeIdevice
-        from exe.engine.opinionidevice        import OpinionIdevice
-
-        from exe.engine.dropdownidevice import DropDownIdevice
-        from exe.engine.scormmultiselectindfeedbackidevice import ScormMultiSelectIndFeedbackIdevice
-        ExeLearninglusExtendedIdevices = []
-        ExeLearninglusExtendedIdevices.append(ScormClozeIdevice())
-        ExeLearninglusExtendedIdevices.append(ScormMultiSelectIdevice())
-        ExeLearninglusExtendedIdevices.append(ScormDropDownIdevice())
-        ExeLearninglusExtendedIdevices.append(ScormMultiClozeIdevice())
-        ExeLearninglusExtendedIdevices.append(OpinionIdevice())
-        ExeLearninglusExtendedIdevices.append(DropDownIdevice())
-        ExeLearninglusExtendedIdevices.append(ScormMultiSelectIndFeedbackIdevice())
-        return ExeLearninglusExtendedIdevices
         
     def __loadExtended(self):
         """
@@ -387,10 +384,6 @@ class IdeviceStore:
             #self.extended = self.factoryiDevices
             for idevice in self.__getIdevicesFPD():
                 self.delIdevice(idevice)
-        # modifications lernmodule.net
-        for idevice in self.__getExeLearningplusiDevices():
-            self.extended.append(idevice)
-        #END modifications lernmodule.net
 
 
 
