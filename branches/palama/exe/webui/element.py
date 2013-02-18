@@ -1942,10 +1942,12 @@ class SelectOptionElement(Element):
 	html += '</div>\n'
 	html += '<div style="float: left; display: table-cell; margin-left: 0.5em; width: 93%;">\n'
 	html += '<div id="%s">\n' % ansIdent
-        if preview: 
-            html += self.answerElement.renderPreview()
+        if preview:
+            #special eXelearningPlus
+            htmlpre = self.answerElement.renderPreview()
         else:
-            html += self.answerElement.renderView()
+            htmlpre = self.answerElement.renderView()
+        html += htmlpre.replace("position:relative\"><p>","position:relative;\"><p style=\"display:inline\">",1)
 #        html += "</div></td></tr><tr><td></td><td>\n"
 	html += "</div></div>\n</div>\n"
 	html += '<div style="display: table-row; clear: both;">'
