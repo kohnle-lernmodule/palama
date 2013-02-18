@@ -1379,4 +1379,7 @@ function CaseStudySubmit(ident){
 	setStatus(ident,suspend_string,0,0);
 }
 
-
+//kthamm 111212 modified feedback function
+function getOptionFeedback(optionId, optionsNum, ideviceId, mode) {
+    document.getElementById("sfbk" + ideviceId).style.display = "block";
+}
