@@ -219,6 +219,179 @@ function recurseFindFillInInputs(dad, ident, result) {
 	}
 }
 
+// Dropdown Field Stuff /////////////////////////////////////////////////
+//This is derived from the exe builtin clozeIDevice
+//This IDevice has Dropdownmenues
+//to select the correct Words
+
+
+// Functions
+
+// Receives and marks answers from student
+
+function checkAndMarkDropdownWord(ele) {
+	var guess = ele.innerHTML,fstatus;
+	var original = getDropdownAnswer(ele, 0);
+	var answer = original.split('|')[0];
+	if (guess==answer) fstatus=2;
+	else if (guess=="?") fstatus=0;
+	else fstatus=1;
+	markDropdownWord(ele,fstatus);
+	return fstatus;
+}
+
+// Returns an array of input elements that are associated with a certain idevice
+function getDropdownInputs(ident) {
+	var result = new Array;
+	var DropdownDiv = document.getElementById('Dropdown'+ident)
+		recurseFindDropdownInputs(DropdownDiv, ident, result);
+	return result;
+}
+
+function DropdownSubmit(ident) {
+	var score = 0, suspend_string = "";
+	var inputs = getDropdownInputs(ident);
+	for (var i=0; i<inputs.length; i++) {
+		if (checkAndMarkDropdownWord(inputs[i]) == 2){
+			suspend_string += "1";
+			score++;
+		}
+		else suspend_string += "0";
+	}
+
+	//	translated
+	//	document.getElementById('DropdownScore'+ident).innerHTML = "Punkte: "+score+" von "+inputs.length;
+	document.getElementById('DropdownScore'+ident).innerHTML = "score: "+score+" of "+inputs.length;
+	//removed ktlm 130116 no scorm support
+	//	setStatus(ident,suspend_string,score,inputs.length);
+	//END removed ktlm 130116 no scorm support
+	// Hide Submit Button
+	toggleElementVisible('submit'+ident);
+	// Show Restart Button
+	toggleElementVisible('restart'+ident);
+	// Show 'Show Answers' Button
+	toggleElementVisible('showAnswersButton'+ident);
+}
+
+//added lernmodule.net 121218
+function DropdownShowAnswers(ident){
+	var inputs = getDropdownInputs(ident);
+	for (var i=0; i<inputs.length; i++) {
+		ShowDropdownWord(inputs[i]);
+	}
+}
+
+function ShowDropdownWord(ele) {
+	var original = getDropdownAnswer(ele, 0);
+	var answer = original.split('|')[0];
+	ele.innerHTML = answer;
+	markDropdownWord(ele,2);
+}
+//END added lernmodule.net 121218
+
+//added ktlm 130116 reimplement button behaviour before scorm
+// Makes Dropdown idevice like new :)
+function DropdownRestart(ident) {
+	clearDropdownInputs(ident);
+	// Hide Restart
+	toggleElementVisible('restart'+ident);
+	// Hide Show Answers Button
+	toggleElementVisible('showAnswersButton'+ident);
+	// Show Submit
+	toggleElementVisible('submit'+ident);
+}
+
+function clearDropdownInputs(ident) {
+	var inputs = getDropdownInputs(ident);
+	for (var i=0; i<inputs.length; i++) {
+		clearDropdownWord(inputs[i]);
+//		inputs[i].disabled = false;
+	}
+}
+
+function clearDropdownWord (ele){
+	var actelement = ele.parentNode;
+	actelement.style.color = "";
+	actelement.style.border = "";
+	actelement.style.backgroundColor = "";
+	actelement.disabled = false;
+	actelement.options[0].selected = true;
+}
+
+//END added ktlm 130116 reimplement button behaviour before scorm
+
+// Marks a Dropdown question (at the moment just changes the color); 'mark' should be 0=Not Answered, 1=Wrong, 2=Right
+function markDropdownWord(ele, mark) {
+	var bcolor="gray",actelement=ele.parentNode;
+	actelement.disabled=true;
+	actelement.style.color="black";
+	if(mark==1) bcolor="red";
+	if(mark==2) bcolor="lime";
+	if (navigator.appVersion.indexOf("MSIE")>-1) actelement.style.backgroundColor=bcolor;
+	actelement.style.border="2px solid "+bcolor;
+}
+
+// Decrypts and returns the answer for a certain Dropdown field word
+function getDropdownAnswer(ele, mode) {
+
+	// Extracts the idevice id and input id from a javascript element
+	function getDropdownIds(ele) {
+		// Extract the idevice id and the input number out of the element's id
+		// id is "DropdownBlank%s.%s" % (idevice.id, input number)
+		var id = ele.parentNode.id.slice(13);
+		var dotindex = id.indexOf('.');
+		var ident = id.slice(0, dotindex);
+		var inputId = id.slice(id.indexOf('.')+1);
+		return [ident, inputId];
+	}
+
+	var idents, ident, inputId;
+	if (mode == 0) idents = getDropdownIds(ele)
+	else idents = ele.split('.');
+	ident = idents[0];
+	inputId = idents[1];
+
+	var answerSpan = document.getElementById('DropdownAnswer'+ident+'.'+inputId);
+	var code = answerSpan.innerHTML;
+	code = decode64(code);
+	code = unescape(code);
+	// XOR "Decrypt"
+	var result = '';
+	var key = 'X'.charCodeAt(0);
+	for (var i=0; i<code.length; i++) {
+		var letter = code.charCodeAt(i);
+		key ^= letter;
+		result += String.fromCharCode(key);
+	}
+	return result;
+}
+
+// Adds any Dropdown inputs found to result, recurses down
+function recurseFindDropdownInputs(dad, ident, result) {
+	var tmp=0;
+	for (var i=0; i<dad.childNodes.length; i++) {
+		tmp=0;
+		var ele = dad.childNodes[i];
+		// See if it is a blank
+		if (ele.id) {
+			if (ele.id.search('DropdownBlank'+ident) == 0) {
+				for (var k=0; k<ele.options.length;k++){
+					if(ele.options[k].selected == 1){
+						result.push(ele.options[k]);
+						tmp = 1;
+						break;
+					}
+				}
+			}
+		}
+		if (tmp == 1) continue;
+		// See if it contains blanks
+		if (ele.hasChildNodes()) {
+			recurseFindDropdownInputs(ele, ident, result);
+		}
+	}
+}
+
 
 // ===========================================================================
 //SCORM Cloze Field Stuff /////////////////////////////////////////////////
@@ -638,6 +811,13 @@ function ScormMultiSelectSubmit(num, ident, b_submit){
 		}
 		return suspend_data.substring(0,suspend_data.length-1);
 	}
+//added lernmodule.net 130108 for individual feedback
+	var showIndFeedback = false;
+	if (ident.substring (0,11) == "IndFeedback"){
+		ident = ident.substring(11);
+		showIndFeedback = true;
+	}
+//END added lernmodule.net 130108 for individual feedback
 	var i, u=0, score=0,suspend_string="", separator="~", poss_corr=0, act_corr=0, act_incorr=0,lmfeedback="", truefalse;
 	for(i=0; i<num; i++){
 		var ele = document.getElementById(ident+i.toString());
@@ -657,11 +837,21 @@ function ScormMultiSelectSubmit(num, ident, b_submit){
 				ele.style.backgroundColor = "lime";
 				ele.style.outline = "2px solid lime";
 				ele.disabled = true;
+//added lernmodule.net 130108: show individual feedback
+				if (showIndFeedback){ 
+					document.getElementById("ans" + ident + i.toString() + "_fbc").style.display = "inline";
+				}
+//END added lernmodule.net 130108: show individual feedback
 				poss_corr++;
 				act_corr++;
 			}else{
 				ele.style.backgroundColor = "red";
 				ele.style.outline = "2px solid red";
+//added lernmodule.net 130108: show individual feedback
+				if (showIndFeedback){ 
+					document.getElementById("ans" + ident + i.toString() + "_fbic").style.display = "inline";
+				}
+//END added lernmodule.net 130108: show individual feedback
 				act_incorr++;
 			}            
 			suspend_string += "1";
@@ -669,7 +859,12 @@ function ScormMultiSelectSubmit(num, ident, b_submit){
 		else{
 			ele.style.backgroundColor = "";
 			ele.style.outline = "";
-			if (truefalse==0) poss_corr++;
+			if (truefalse==0){
+				poss_corr++;
+				document.getElementById("ans" + ident + i.toString() + "_fbic").style.display = "inline";
+			} else {
+				document.getElementById("ans" + ident + i.toString() + "_fbc").style.display = "inline";
+			}
 			suspend_string += "0";
 		}
 	}
@@ -679,6 +874,10 @@ function ScormMultiSelectSubmit(num, ident, b_submit){
 				var ele = document.getElementById(ident+i.toString());
 				ele.style.backgroundColor = "";
 				ele.style.outline = "";
+				if (showIndFeedback){ 
+					document.getElementById("ans" + ident + i.toString() + "_fbc").style.display = "none";
+					document.getElementById("ans" + ident + i.toString() + "_fbic").style.display = "none";
+				}
 			}
 	}
 	if((act_corr-act_incorr)<0||lmfeedback!="") score=0;
@@ -776,7 +975,11 @@ function initSuspendDataIDevices(){
 	pageDivs = document.getElementsByTagName("div");
 	for (var i=0; i<pageDivs.length; i++){
 		x = pageDivs[i];
-		switch (x.getAttribute(classAttr)){
+//changed lernmodule.net 130108 
+		var testType = x.getAttribute(classAttr);
+//		switch (x.getAttribute(classAttr))
+		switch (testType){
+//END changed lernmodule.net 130108 
 			case "Reflection":
 				//read textarea and to lm_suspend.push urlencode/urldecode
 				xselects = new Array(pageDivs[i].firstChild);
@@ -851,6 +1054,8 @@ function initSuspendDataIDevices(){
 				lm_suspend.push([x,x.getAttribute("id").substring(15),"ScormMultiCloze",xselects]);
 				break;
 				//End added ktlm 121214
+				//added lernmodule.net 130108 
+			case "ScormMultiSelectIndFeedback":
 			case "ScormMultiSelect":
 				show_condition = 1;
 				actnode = pageDivs[i].firstChild;
@@ -883,8 +1088,13 @@ function initSuspendDataIDevices(){
 						supnode = supnode.nextSibling;
 					}
 				}
-				document.getElementById("scorediv"+x.getAttribute("id").substring(16)).innerHTML="";
-				lm_suspend.push([x,x.getAttribute("id").substring(16),"ScormMultiSelect",xselects]);
+				if (testType=="ScormMultiSelectIndFeedback") {
+					document.getElementById("scorediv"+x.getAttribute("id").substring(27)).innerHTML="";
+					lm_suspend.push([x,x.getAttribute("id").substring(16),"ScormMultiSelect",xselects]);
+				} else {
+					document.getElementById("scorediv"+x.getAttribute("id").substring(16)).innerHTML="";
+					lm_suspend.push([x,x.getAttribute("id").substring(16),"ScormMultiSelect",xselects]);
+				}
 				break;
 		}
 	}
@@ -943,6 +1153,9 @@ function initSuspendDataIDevices(){
 					}
 					document.getElementById('ScormMultiClozeScore' + lm_suspend[i][1]).innerHTML = getLmTxt("score")+": "+act_corr+" "+getLmTxt("of")+" "+lm_suspend[i][3].length;
 					break;
+				//added lernmodule.net 130108 
+				case "ScormMultiSelectIndFeedback":
+				//END added lernmodule.net 130108 
 				case "ScormMultiSelect":
 					var xsuspend;
 					for(j=0; j<lm_suspend[i][3].length; j++){
@@ -1058,6 +1271,8 @@ function endsubmit(){
 				show_condition=1;
 				ScormMultiClozeSubmit(lm_suspend[i][1]);
 				break;
+//added lernmodule.net 130108 
+			case "ScormMultiSelectIndFeedback":
 			case "ScormMultiSelect":
 				show_condition=1;
 				ScormMultiSelectSubmit(lm_suspend[i][3].length,lm_suspend[i][1],true);
@@ -1134,6 +1349,9 @@ function show_answers (triesleft,apiexist){
 			case "ScormMultiCloze":
 				ShowScormMultiClozeAnswers(lm_suspend[i][1]);
 				break;
+//added lernmodule.net 130108 
+			case "ScormMultiSelectIndFeedback":
+//END added lernmodule.net 130108 
 			case "ScormMultiSelect":
 				ShowScormMultiSelectAnswers(lm_suspend[i][3].length,lm_suspend[i][1],true);
 				break;

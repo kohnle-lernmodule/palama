@@ -168,6 +168,7 @@ completed."""),
             u'')
                 
         self.instructionsForLearners.idevice = self
+        self.icon = u"activity" #added kthamm 111028
         
 
     # Properties

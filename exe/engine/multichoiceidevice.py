@@ -116,7 +116,8 @@ for the other options.""")
         self.message          = ""
 
         self.addQuestion()
-
+        self.alt_title = u"Activity" #added kthamm 111221
+        self.icon = u"activity"  #added kthamm 111221
     # Properties
     hintInstruc     = lateTranslate('hintInstruc')
     questionInstruc = lateTranslate('questionInstruc')

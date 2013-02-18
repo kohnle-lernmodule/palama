@@ -66,9 +66,12 @@ from exe.webui.orientacionestutoriafpdblock	import OrientacionestutoriafpdBlock
 from exe.webui.freetextfpdblock	import FreeTextfpdBlock
 
 #modification by lernmodule.net
+from exe.webui.opinionblock           import OpinionBlock
 from exe.webui.scormdropdownblock     import ScormDropDownBlock
+from exe.webui.dropdownblock     import DropDownBlock
 from exe.webui.scormclozeblock        import ScormClozeBlock
 from exe.webui.scormmultiselectblock  import ScormMultiSelectBlock
+from exe.webui.scormmultiselectindfeedbackblock  import ScormMultiSelectIndFeedbackBlock
 from exe.webui.scormmulticlozeblock   import ScormMultiClozeBlock
 #end modification
 # ===========================================================================

@@ -71,6 +71,7 @@ distractors </li>
         self.questions  = []
         self.addQuestion()
         self.systemResources += ["common.js"]
+        self.icon = u"activity"#added kthamm 111028 
         
 
     def addQuestion(self):

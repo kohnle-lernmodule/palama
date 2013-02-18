@@ -132,6 +132,8 @@ click on the Hide/Show Word button below.</p>"""))
         self.feedback.idevice = self
         self.emphasis = Idevice.SomeEmphasis
         self.systemResources += ["common.js"]
+        self.icon = u"activity" #added kthamm 111028
+        self.alt_title = u"Activity" #added kthamm 111221
         self.isCloze = True
 
 

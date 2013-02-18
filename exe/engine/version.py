@@ -23,9 +23,9 @@
 Version Information
 """
 
-project        = "eXelearningPlus"
+project        = "Palama"
 release        = "1.04.1"
-revision       = "RC.3605intef6.3-based"
+revision       = "1.3605intef6.3-based"
 
 version = release + "." + revision
 

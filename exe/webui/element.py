@@ -180,7 +180,7 @@ class TextAreaElement(ElementWithResources):
         self.width  = "100%"
         if (hasattr(field.idevice, 'class_') and
             field.idevice.class_ in \
-                    ("activity", "objectives", "preknowledge")):
+                    ("activity", "objectives", "preknowledge", "devsummary", "devpreview", "devresource", "devdiscussion")):
             self.height = 250
         else:
             self.height = 100
@@ -1230,7 +1230,7 @@ class ClozeElement(ElementWithResources):
                      ]
             # Set the show/hide answers button attributes
             style = 'display: none;'
-            value = _(u"Show Answers")
+            value = _(u"Show correct Answers")
             onclick = "fillClozeInputs('%s')" % self.id
         # Show/hide answers button
         html += ['&nbsp;&nbsp;',
@@ -2129,7 +2129,7 @@ class SelectquestionElement(Element):
 #        html += "</table>"   
 	html += "</div>"
         html += '<input type="button" name="submitSelect"' 
-        html += ' value="%s" ' % _("Show Feedback")
+        html += ' value="%s" ' % _("Submit")
         html += 'onclick="showFeedback(%d,\'%s\')"/> ' %(len(self.field.options),self.field.id) 
         html += "<br/>\n"
         html += '<div id="%s" style="display:none">' % ("f"+self.field.id)
@@ -3015,6 +3015,237 @@ class ScormDropDownElement(ElementWithResources):
                 
         return html
 
+#============================================================================
+class DropDownElement(ElementWithResources):
+
+    """
+    Allows the user to enter a passage of text and declare that some words
+    should be added later by the student - similar to Cloze
+    """
+
+    # Properties
+
+    @property
+    def editorId(self):
+        """
+        Returns the id string for our midas editor
+        """
+        return 'editorArea%s' % self.id
+
+    @property
+    def editorJs(self):
+        """
+        Returns the js that gets the editor document
+        """
+        return "document.getElementById('%s').contentWindow.document" % \
+            self.editorId
+
+    @property
+    def hiddenFieldJs(self):
+        """
+        Returns the js that gets the hiddenField document
+        """
+        return "document.getElementById('cloze%s')" % self.id
+
+    # Public Methods
+
+    def process(self, request):
+        """
+        Sets the encodedContent of our field
+        """
+        is_cancel = common.requestHasCancel(request)
+
+        if is_cancel:
+            self.field.idevice.edit = False
+            # but double-check for first-edits, and ensure proper attributes:
+            if not hasattr(self.field, 'content_w_resourcePaths'):
+                self.field.content_w_resourcePaths = ""
+                self.field.idevice.edit = True
+            if not hasattr(self.field, 'content_wo_resourcePaths'):
+                self.field.content_wo_resourcePaths = ""
+                self.field.idevice.edit = True
+            return
+
+        if self.editorId in request.args:
+            # process any new images and other resources courtesy of tinyMCE:
+
+            self.field.content_w_resourcePaths = \
+                self.field.ProcessPreviewed(request.args[self.editorId][0])
+            # likewise determining the paths for exports, etc.:
+            self.field.content_wo_resourcePaths = \
+                  self.field.MassageContentForRenderView(\
+                         self.field.content_w_resourcePaths)
+            # and begin by choosing the content for preview mode, WITH paths:
+            self.field.encodedContent = self.field.content_w_resourcePaths
+
+            self.field.strictMarking = \
+                'strictMarking%s' % self.id in request.args
+            self.field.checkCaps = \
+                'checkCaps%s' % self.id in request.args
+            self.field.instantMarking = \
+                'instantMarking%s' % self.id in request.args
+
+    def renderEdit(self):
+        """
+        Enables the user to set up their passage of text
+        """
+        # to render, choose the content with the preview-able resource paths:
+        self.field.encodedContent = self.field.content_w_resourcePaths
+
+        this_package = None
+        if self.field_idevice is not None \
+        and self.field_idevice.parentNode is not None:
+            this_package = self.field_idevice.parentNode.package
+
+        html = [
+            # Render the iframe box
+            common.formField('richTextArea', this_package, _('Cloze Text'),'',
+                             self.editorId, self.field.instruc,
+                             self.field.encodedContent),
+            # Render our toolbar
+            u'<table style="width: 100%;">',
+            u'<tbody>',
+            u'<tr>',
+            u'<td>',
+            u'  <input type="button" value="%s" ' % _("Hide/Show Word")+
+#changed ktlm for tinymce 3.5.4.1
+#            ur"""onclick="tinyMCE.execInstanceCommand('mce_editor_1','Underline', false);"/>"""
+            ur"""onclick="tinyMCE.execCommand('Underline', false);"/>"""
+#END changed ktlm for tinymce 3.5.4.1
+            u'</td>',
+            u'</tr>',
+            u'</tbody>',
+            u'</table>',
+            ]
+        return '\n    '.join(html)
+
+    def renderPreview(self, feedbackId=None, preview=True):
+        """
+        Just a front-end wrapper around renderView..
+        """
+        # set up the content for preview mode:
+        preview = True
+        return self.renderView(feedbackId, preview)
+
+    def renderView(self, feedbackId=None, preview=False):
+        """
+        Shows the text with inputs for the missing parts
+        """
+
+        if preview: 
+            # to render, use the content with the preview-able resource paths:
+            self.field.encodedContent = self.field.content_w_resourcePaths
+        else:
+            # to render, use the flattened content, withOUT resource paths: 
+            self.field.encodedContent = self.field.content_wo_resourcePaths
+
+        html = ['<div id="Dropdown%s" class="Dropdown">' % self.id]
+        # Store our args in some hidden fields
+        def storeValue(name):
+            value = str(bool(getattr(self.field, name))).lower()
+            return common.hiddenField('DropdownFlag%s.%s' % (self.id, name), value)
+        html.append(storeValue('strictMarking'))
+        html.append(storeValue('checkCaps'))
+        html.append(storeValue('instantMarking'))
+        if feedbackId:
+            html.append(common.hiddenField('DropdownVar%s.feedbackId' % self.id,
+                                           'ta'+feedbackId))
+        # Mix the parts together
+        words = ""
+        def encrypt(word):
+            """
+            Simple XOR encryptions
+            """
+            result = ''
+            key = 'X'
+            for letter in word:
+                result += unichr(ord(key) ^ ord(letter))
+                key = letter
+            # Encode for javascript
+            output = ''
+            for char in result:
+                output += '%%u%04x' % ord(char[0])
+            return output.encode('base64')
+        for i, (text, missingWord) in enumerate(self.field.parts):
+            if text:
+                html.append(text)
+            if missingWord:
+                words += "'" + missingWord + "',"
+                #kt
+                answers = missingWord.split('|');
+                #kt
+                # The edit box for the user to type into
+
+                shuffle(answers)
+                inputHtml = ['<select id="DropdownBlank%s.%s" class="DropdownBlank"><option style="background-color:white;" selected>?</option>' % (self.id, i)]
+                for j in range(1,len(answers)+1):
+#                    answers[j-1] = re.sub(r'\n','',answers[j-1])
+                    inputHtml.append('<option style="background-color:white;">' + answers[j-1] + '</option>')
+                inputHtml.append('</select>')
+                html += inputHtml
+                # Hidden span with correct answer
+                html += [
+                    '<span style="display: none;" ',
+                    'id="DropdownAnswer%s.%s">%s</span>' % (
+                        self.id, i, encrypt(missingWord))]
+
+        html += [common.button('submit%s' % self.id,
+                    _(u"Submit"),
+                    id='submit%s' % self.id,
+                    onclick="DropdownSubmit('%s')" % self.id),
+        # Set the show/hide answers button attributes
+        # Show/hide answers button
+                 common.button(
+                    '%sshowAnswersButton' % self.id,
+                    _(u"Show Answers"),
+                    id='showAnswersButton%s' % self.id,
+                    style="display: none;",
+                    onclick="DropdownShowAnswers('%s')" % self.id),
+                 common.button(
+                    'restart%s' % self.id,
+                    _(u"Restart"),
+                    id='restart%s' % self.id,
+                    style="display: none;",
+                    onclick="DropdownRestart('%s')" % self.id),
+                     ]
+
+        # Score string
+        html += ['<p id="DropdownScore%s"></p>' % self.id]
+
+        return '\n'.join(html) + '</div>'
+    
+    def renderText(self):
+        """
+        Shows the text with gaps for text file export
+        """
+        html = ""
+        for text, missingWord in self.field.parts:
+            if text:
+                html += text
+            if missingWord:
+                for x in missingWord:
+                    html += "_"
+                    
+        return html
+    
+    def renderAnswers(self):        
+        """
+        Shows the answers for text file export
+        """
+        html = ""
+
+        html += "<p>%s: </p><p>"  % _(u"Answsers")
+        answers = ""
+        for i, (text, missingWord) in enumerate(self.field.parts):
+            if missingWord:
+                answers += str(i+1) + '.' + missingWord + ' '
+        if answers <> "":        
+            html += answers +'</p>'
+        else:
+            html = ""
+                
+        return html
+
 # ===========================================================================
 class ScormSelectOptionElement(Element):
     """
@@ -3266,6 +3497,339 @@ class ScormSelectquestionElement(Element):
         return html
 
 # ===========================================================================
+class ScormSelectQuestionIndFeedbackElement(Element):
+    """
+    ScormSelectQuestionElement is responsible for a block of question.
+    Used by QuizTestBlock
+    Which is used as part of the Multi-Select iDevice.
+    """
+
+    def __init__(self, field):
+        """
+        Initialize
+        """
+        Element.__init__(self, field)
+
+        # to compensate for the strange unpickling timing when objects are
+        # loaded from an elp, ensure that proper idevices are set:
+        if field.questionTextArea.idevice is None:
+            field.questionTextArea.idevice = idevice
+        if field.feedbackTextArea.idevice is None:
+            field.feedbackTextArea.idevice = idevice
+
+        self.questionElement = TextAreaElement(field.questionTextArea)
+        self.questionId = "question"+self.id
+        self.questionElement.id = self.questionId
+        self.feedbackElement = TextAreaElement(field.feedbackTextArea)
+        self.feedbackId = "feedback"+self.id
+        self.feedbackElement.id = self.feedbackId
+
+        self.options    = []
+        i = 0
+        for option in self.field.options:
+            ele = ScormSelectOptionIndFeedbackElement(option)
+            ele.index = i
+            self.options.append(ele)
+            i += 1
+
+    def process(self, request):
+        """
+        Process the request arguments from the web server
+        """
+        log.info("process " + repr(request.args))
+
+        if self.questionId in request.args:
+            self.questionElement.process(request)
+
+        if ("addOption"+unicode(self.id)) in request.args:
+            self.field.addOption()
+            self.field.idevice.edit = True
+
+        if self.feedbackId in request.args:
+            self.feedbackElement.process(request)
+
+        if "action" in request.args and \
+           request.args["action"][0] == "del" + self.id:
+            self.field.idevice.questions.remove(self.field)
+
+        for element in self.options:
+            element.process(request)
+
+
+    def renderEdit(self):
+        """
+        Returns an XHTML string with the form element for editing this element
+        """
+        html  = u"<div class=\"iDevice\">\n"
+        html += u"<b>" + _("Question:") + " </b>"
+#        html += common.elementInstruc(self.field.questionInstruc)
+
+#changed lernmodule.net 130114
+# translated
+#        html += common.elementInstruc(_("Geben Sie hier die Aufgabenstellung ein.<br>Formulieren Sie klar und eindeutig.<br>Formulieren Sie positiv und vermeiden Sie Verneinungen, da Lernende sonst verwirrt werden k&ouml;nnten.<br>Bevorzugen Sie &quot;Warum&quot; und &quot;Wie&quot;-Fragen. &quot;Wer&quot;, &quot;Wann&quot; und &quot;Wo&quot;-Fragen k&ouml;nnen oberfl&auml;chlich sein.<br>Testen Sie auf Erfolg, nicht auf Versagen!"))
+#        html += common.elementInstruc (_("Scorm Multiple Choice Question instructions"))
+        html += common.elementInstruc(_("Enter the task here.<br>Formulate clearly and unambiguous.<br><Prefer questions with &quot;why&quot; and &quot;how&quot;.<br>Questions with &quot;who&quot;, &quot;when&quot; and &quot;where&quot; can be perfunctory.<br>Test for success, not for failure."))
+#END changed lernmodule.net 130114
+#        html += u" " + common.submitImage("del" + self.id,
+#                                   self.field.idevice.id,
+#                                   "/images/stock-cancel.png",
+#                                   _("Delete question"))
+        # rather than using questionElement.renderEdit(),
+        # access the appropriate content_w_resourcePaths attribute directly,
+        # since this is in a customised output format
+        # (an extra delete-question X to the right of the question-mark)
+        html += common.richTextArea("question"+self.id,
+                       self.questionElement.field.content_w_resourcePaths)
+
+        html += u"<table width =\"100%%\">"
+#        html += u"<thead>"
+#        html += u"<tr>"
+#        html += u"<th>%s " % _("Options")
+#        html += common.elementInstruc(self.field.optionInstruc)
+#        html += u"</th>"
+#        html += u"</tr>"
+#        html += u"</thead>"
+#        html += u"<tbody>"
+
+        for element in self.options:
+            html += element.renderEdit()
+
+#        html += u"</tbody>"
+        html += u"</table>\n"
+
+        value = _(u"Add another Option")
+        html += common.submitButton("addOption"+self.id, value)
+        html += u"<br />"
+
+        #html += self.feedbackElement.renderEdit()
+
+        html += u"</div>\n"
+
+        return html
+
+    def renderView(self,img=None):
+        """
+        Returns an XHTML string for viewing this question element
+        """
+        return self.doRender(img, preview=False)
+
+    def renderPreview(self,img=None):
+        """
+        Returns an XHTML string for viewing this question element
+        """
+        return self.doRender(img, preview=True)
+
+
+    def doRender(self, img, preview=False):
+        """
+        Returns an XHTML string for viewing this element
+        """
+
+        if preview:
+            html  = self.questionElement.renderPreview()
+        else:
+            html  = self.questionElement.renderView()
+
+        html += '<div id="ScormMultiSelectIndFeedback%s" class="ScormMultiSelectIndFeedback">' %(self.field.id)
+        for element in self.options:
+            html += element.renderView(preview)
+        #html += '<!--if you want to use eXelearningPlus for free as Open Source you are not allowed to hide or delete the following text.-->\n'
+        #html += '<!--If you want to hide or delete, you have to contact lernmodule.net-->\n'
+        #html += '<p id="scorediv%s" class="block" style="display:block">' %(self.field.id)
+        #html += '<span style="font-size:70%">created with <a style="color:gray" href="http://www.exelearningplus.de" target="_blank">eXelearningPlus</a> provided by <a style="color:gray" href="http://www.lernmodule.net" target="_blank">lernmodule.net</a></span></p>'
+        html += '<p id="scorediv%s" class="block" style="display:block"></p>' %(self.field.id)
+        html += "</div><br />"
+        return html
+
+# ===========================================================================
+class ScormSelectOptionIndFeedbackElement(Element):
+    """
+    ScormSelectOptionIndFeedbackElement is responsible for a block of option.  Used by
+    ScormSelectQuestionFeedbackElement.
+    Which is used as part of the Scorm Multi-Select iDevice.
+    """
+    def __init__(self, field):
+        """
+        Initialize
+        """
+        Element.__init__(self, field)
+        self.index = 0
+
+        # to compensate for the strange unpickling timing when objects are
+        # loaded from an elp, ensure that proper idevices are set:
+        if field.answerTextArea.idevice is None:
+            field.answerTextArea.idevice = idevice
+
+#added by lernmodule.net 130108 same compensation for feedback fields
+        if field.answerFeedbackCorrTextArea.idevice is None:
+            field.field.answerFeedbackCorrTextArea.idevice.idevice = idevice
+        if field.answerFeedbackIncorrTextArea.idevice is None:
+            field.field.answerFeedbackIncorrTextArea.idevice.idevice = idevice
+#END added by lernmodule.net 130108 same compensation for feedback fields
+
+        self.answerElement = TextAreaElementWithSpan(field.answerTextArea)
+        self.answerId = "ans"+self.id
+        self.answerElement.id = self.answerId
+#added by lernmodule.net 130108 to store individual feedback
+        self.fbCorrect    = "Correct"
+        self.fbIncorrect    = "Incorrect"
+#end added by lernmodule.net 130108 to store individual feedback
+        
+
+#added lernmodule 130108 textareas to enter individual feedback
+#feedback correct answer
+        if field.answerFeedbackCorrTextArea.idevice is None:
+            field.answerFeedbackCorrTextArea.idevice = idevice
+        self.answerFeedbackCorrElement = TextAreaElementWithSpan(field.answerFeedbackCorrTextArea)
+        self.answerFeedbackCorrId = "ans_fbc"+self.id
+        self.answerFeedbackCorrElement.id = self.answerFeedbackCorrId
+#feedback incorrect answer
+        if field.answerFeedbackIncorrTextArea.idevice is None:
+            field.answerFeedbackIncorrTextArea.idevice = idevice
+        self.answerFeedbackIncorrElement = TextAreaElementWithSpan(field.answerFeedbackIncorrTextArea)
+        self.answerFeedbackIncorrId = "ans_fbic"+self.id
+        self.answerFeedbackIncorrElement.id = self.answerFeedbackIncorrId
+#END: added ktlm 130108 for individual feedback
+
+    def process(self, request):
+        """
+        Process arguments from the web server.
+        Return any which apply to this element.
+        """
+        log.debug("process " + repr(request.args))
+
+        if self.answerId in request.args:
+            self.answerElement.process(request)
+
+#added by lernmodule.net 130108 get contents of feedback fields
+        if self.answerFeedbackCorrId in request.args:
+            self.answerFeedbackCorrElement.process(request)
+
+        if self.answerFeedbackIncorrId in request.args:
+            self.answerFeedbackIncorrElement.process(request)
+#added by lernmodule.net 130108 get contents of feedback fields
+        if self.answerId in request.args:
+            self.answerElement.process(request)
+
+
+        if "c"+self.id in request.args:
+            self.field.isCorrect = True
+            log.debug("option " + repr(self.field.isCorrect))
+        elif "ans"+self.id in request.args:
+            self.field.isCorrect = False
+
+        if "action" in request.args and \
+           request.args["action"][0] == "del"+self.id:
+            self.field.question.options.remove(self.field)
+
+
+    def renderEdit(self):
+        """
+        Returns an XHTML string for editing this option element
+        code is pretty much straight from the Multi-Option aka QuizOption
+        """
+        html  = u"<tr><td colspan=\"3\" align=\"left\"><b>%s</b>" % _("Option")
+#changed lernmodule 130114
+        html += common.elementInstruc("Enter the option here. More options can be added by clicking &quot;Add another Option&quot;.<br> Options can be deleted by clicking on the red X next to the option.<br>Hints: Use several wrong responses.<br>The wrong responses should be formulated approximately equal<br>in length and clarity as the right responses.<br> The wrong responses should seem plausible.")
+#        html += common.elementInstruc (_("Scorm Multiple Choice Option instructions"))
+# translated
+#        html += common.elementInstruc("Geben Sie hier die Antwort ein. Weitere Antworten k&ouml;nnen erg&auml;nzt werden durch Klick auf 'Eine weitere Antwort hinzuf&uuml;gen'. Antworten k&ouml;nnen gel&ouml;scht werden durch Klick auf das rote X neben der Antwort.<br>Hinweise:<br>Verwenden Sie mehrere falsche Antworten. Die falsche Antworten sollten Sie etwa gleich lang und klar wie die richtige(n) Atwort(en) formulieren. Die falschen Antworten m&uuml;ssen plausibel erscheinen.")
+#END changed lernmodule 130114
+
+        html += u"</td></tr><tr><td align=\"left\">\n"
+        html += common.checkbox("c"+self.id,
+                              self.field.isCorrect, self.index)
+#        html += "&nbsp;Richtig<br /><br /><br /><br />\n"
+        html += "&nbsp;Correct<br /><br /><br /><br />\n"
+        html += common.submitImage("del"+self.id, self.field.idevice.id,
+                                   "/images/stock-cancel.png",
+                                   _(u"Delete option"))
+        html += "</td><td colspan=\"2\">\n"
+        # rather than using answerElement.renderEdit(),
+        # access the appropriate content_w_resourcePaths attribute directly,
+        # since this is in a customised output format
+        # (in a table, with an extra delete-option X to the right)
+        html += common.richTextArea("ans"+self.id,
+                          self.answerElement.field.content_w_resourcePaths)
+
+        html += "</td></tr>\n"
+#added ktlm 130108 textareas for Feedback for correct and incorrect
+        html += u"<tr><td align=\"left\" colspan=\"3\"><b>%s</b>" % _("Feedback Correct")
+#changed lernmodule.net 130114
+        html += common.elementInstruc (_("You can enter an individual feedback for the case the learners response was correct"))
+#        html += common.elementInstruc (_("Scorm Multiple Choice Correct Feedback instructions"))
+#changed lernmodule.net 130114
+        html += "</td></tr>\n"
+
+        html += "<tr><td colspan=\"3\">\n"
+        html += common.richTextArea("ans_fbc"+self.id,
+                          self.answerFeedbackCorrElement.field.content_w_resourcePaths)
+        html += "</td></tr>\n"
+
+        html += u"<tr><td align=\"left\" colspan=\"3\"><b>%s</b>" % _("Feedback Incorrect")
+#changed lernmodule.net 130114
+#        html += common.elementInstruc (_("Scorm Multiple Choice Incorrect Feedback instructions"))
+        html += common.elementInstruc (_("You can enter an individual feedback for the case the learners response was incorrect"))
+#END changed lernmodule.net 130114
+        html += "</td></tr>\n"
+        html += "<tr><td colspan=\"3\">\n"
+        html += common.richTextArea("ans_fbic"+self.id,
+                          self.answerFeedbackIncorrElement.field.content_w_resourcePaths)
+
+        html += "</td></tr>\n"
+#END: added ktlm 130108 textareas for Feedback for correct and incorrect
+
+        return html
+
+
+    def renderView(self, preview=False):
+        def encrypt(word):
+            """
+            Simple XOR encryptions
+            """
+            result = ''
+            key = 'X'
+            for letter in word:
+                result += unichr(ord(key) ^ ord(letter))
+                key = letter
+            # Encode for javascript
+            output = ''
+            for char in result:
+                output += '%%u%04x' % ord(char[0])
+            return output.encode('base64')
+        """
+        Returns an XHTML string for viewing this option element
+        """
+        log.debug("renderView called with preview = " + str(preview))
+        ident = self.field.question.id + str(self.index)
+        html = u'<input type="checkbox" id="%s"' % ident
+        if self.field.isCorrect == True :
+            html += u' value="%s" />\n' %str(encrypt(str(randint(0,10000) * 2)))
+        else :
+            html += u' value="%s" />\n' %str(encrypt(str(randint(0,10000) * 2 + 1)))
+        ansIdent = "ans" + self.field.question.id + str(self.index)
+        html += '<span id="%s" style="color:black">\n' % ansIdent
+        if preview:
+            html += self.answerElement.renderPreview()
+        else:
+            html += self.answerElement.renderView()
+        html += '</span>&nbsp;&nbsp;'
+#added by lernmodule.net 130108 individual feedback
+        html += '<span id="%s_fbc" class="scorm_mc_fbc" style="display:none">' % ansIdent 
+        html += self.answerFeedbackCorrElement.renderView()
+        html += '</span>'
+        html += '<span id="%s_fbic" class="scorm_mc_fbic" style="display:none">' % ansIdent 
+        html += self.answerFeedbackIncorrElement.renderView()
+        html += '</span>'
+#END added by lernmodule.net 130108 individual feedback
+        html += '<br />\n'
+        return html
+
+
+# ===========================================================================
+
+
+
 
 class TextAreaElementWithSpan(ElementWithResources):
     """
@@ -3280,7 +3844,7 @@ class TextAreaElementWithSpan(ElementWithResources):
         self.width  = "100%"
         if (hasattr(field.idevice, 'class_') and
             field.idevice.class_ in \
-                    ("activity", "objectives", "preknowledge")):
+                    ("activity", "objectives", "preknowledge", "devsummary", "devpreview", "devresource", "devdiscussion")):
             self.height = 250
         else:
             self.height = 100

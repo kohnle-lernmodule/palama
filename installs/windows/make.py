@@ -30,11 +30,11 @@ subprocess.check_call('c:\Python27\python win-setup.py py2exe', shell = True, cw
 sys.path.insert(0, WDIR)
 from exe.engine import version
 
-versions = "/DEXE_VERSION=%s /DEXE_REVISION=%s /DEXE_SPLASH=%s" \
-        % (version.release, version.revision, BRANDED_JPG)
-# for specific branches use 
 #versions = "/DEXE_VERSION=%s /DEXE_REVISION=%s /DEXE_SPLASH=%s" \
-#        % (version.project+"-"+version.release, version.revision, BRANDED_JPG)
+#        % (version.release, version.revision, BRANDED_JPG)
+# for specific branches use 
+versions = "/DEXE_VERSION=%s /DEXE_REVISION=%s /DEXE_SPLASH=%s" \
+        % (version.project+"-"+version.release, version.revision, BRANDED_JPG)
 
 # brand the splash screen
 os.chdir(os.path.join(WDIR, 'installs/windows'))

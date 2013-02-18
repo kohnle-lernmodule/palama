@@ -474,7 +474,8 @@ these in a gallery context rather then individually.</p>"""),
                                     u"below where you will be able to label "
                                     u"it. It's always good practice to put "
                                     u"the file size in the label.")
-
+        self.icon = u'tp' #added 111221 kthamm, transparent pixel as icon (icon_tp.gif)
+        self.alt_title = u'' #added 111221 kthamm
     # Properties
     addImageInstr = lateTranslate('addImageInstr')
     titleInstruc = lateTranslate('titleInstruc')

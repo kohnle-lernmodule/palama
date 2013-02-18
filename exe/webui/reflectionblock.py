@@ -114,11 +114,11 @@ class ReflectionBlock(Block):
             html += self.activityElement.renderView()
 
         html += '<div id="view%s" style="display:block;">' % self.id
-        html += common.feedbackButton("btnshow"+self.id, _(u"Click here"),
+        html += common.feedbackButton("btnshow"+self.id, _(u"Show Feedback"),
                     onclick="showAnswer('%s',1)" % self.id)
         html += '</div>\n' 
         html += '<div id="hide%s" style="display:none;">' % self.id
-        html += common.feedbackButton("btnshow"+self.id, _(u"Hide"),
+        html += common.feedbackButton("btnshow"+self.id, _(u"Hide Feedback"),
                     onclick="showAnswer('%s',0)" % self.id)
         html += '</div>\n'
         html += '<div id="s%s" class="feedback" style=" ' % self.id

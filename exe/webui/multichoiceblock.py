@@ -103,7 +103,8 @@ class MultichoiceBlock(Block):
         html  = "<div class=\"iDevice\"><br/>\n"
         if self.idevice.message<>"":
             html += common.editModeHeading(self.idevice.message)
-        html += common.textInput("title"+self.id, self.idevice.title) + '<br/>'
+#        html += common.textInput("title"+self.id, self.idevice.title) + '<br/>'
+        html += common.textInput("title"+self.id, self.idevice.alt_title) + '<br/>'#changed kthamm 111221
             
         for element in self.questionElements:
             html += element.renderEdit() 
@@ -130,8 +131,9 @@ class MultichoiceBlock(Block):
         html += u'<img alt="%s" ' % _(u'IDevice Question Icon')
         html += u'     class="iDevice_icon" '
         html += "src=\"icon_question.gif\" />\n"
-        html += "<span class=\"iDeviceTitle\"><strong>"       
-        html += self.idevice.title+"</strong></span>\n"
+        html += "<span class=\"iDeviceTitle\">"       
+#        html += self.idevice.title+"</strong></span>\n"
+        html += self.idevice.alt_title+"</span><br/>\n"#changed kthamm 111221
         html += "<div class=\"iDevice_inner\">\n"
         
         for element in self.questionElements:
@@ -154,8 +156,9 @@ class MultichoiceBlock(Block):
         html += u'<img alt="%s" ' % _(u'IDevice Icon')
         html += u'     class="iDevice_icon" '
         html += u"src=\"/style/"+style+"/icon_"+self.idevice.icon+".gif\" />\n"
-        html += u"<span class=\"iDeviceTitle\"><strong>"       
-        html += self.idevice.title+"</strong></span>\n"
+        html += u"<span class=\"iDeviceTitle\">"       
+#        html += self.idevice.title+"</strong></span>\n"
+        html += self.idevice.alt_title+"</span><br/>\n"#changed kthamm 111221
         html += "<div class=\"iDevice_inner\">\n"
 
         for element in self.questionElements:

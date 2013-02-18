@@ -44,13 +44,28 @@ class GenericIdevice(Idevice):
         """
         Initialize 
         """
-        if class_ in ("objectives", "activity", "reading", "preknowledge"):
+        if class_ in ("objectives", "activity", "reading", "preknowledge", "devsummary", "devpreview", "devresource","devdiscussion"):
             icon = class_
         else:
             icon = None
         Idevice.__init__(self, title, author, purpose, tip, icon)
         self.class_  = class_
         self.icon    = icon
+	#added for own icons kthamm 111027
+	if class_ in ("devsummary", "devpreview"):
+            self.icon = u"sharedmetainformation"
+        #end added kthamm
+
+	#added for own icons kthamm 111028
+	if class_ in ("devresource"):
+            self.icon = u"resources"
+        #end added kthamm
+
+	#added for own icons kthamm 111028
+	if class_ in ("devdiscussion"):
+            self.icon = u"groupdiscussion"
+        #end added kthamm
+
         self.fields  = []
         self.nextFieldId = 0
         self.systemResources.append('common.js')
@@ -164,7 +179,7 @@ class GenericIdevice(Idevice):
                 attrs={'class' : 'iDeviceTitle' }) 
         self.title = title.renderContents().decode('utf-8') 
 
-        if self.class_ in ("objectives", "activity", "preknowledge", "generic"):
+        if self.class_ in ("objectives", "activity", "preknowledge", "generic", "devsummary", "devpreview", "devresource", "devdiscussion"):
             inner = i.find(name='div', 
                 attrs={'class' : 'iDevice_inner' }) 
             inner_content = inner.find(name='div', 
@@ -221,7 +236,7 @@ class GenericIdevice(Idevice):
         Adds icon
         """
         log.debug("Upgrading iDevice")
-        if self.class_ in ("objectives", "activity", "reading", "preknowledge"):
+        if self.class_ in ("objectives", "activity", "reading", "preknowledge", "devsummary", "devpreview", "devresource", "devdiscussion"):
             self.icon = self.class_
         else:
             self.icon = "generic"

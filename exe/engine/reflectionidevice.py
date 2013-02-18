@@ -66,6 +66,7 @@ reflective feedback.)""")
         self.answerTextArea = TextAreaField(x_(u'Feedback:'), 
                                    self._answerInstruc, answer)
         self.answerTextArea.idevice = self
+        self.icon = u"activityPencil"
 
     # Properties
     activityInstruc = lateTranslate('activityInstruc')
