@@ -6,6 +6,7 @@
     padding-left: 20px;
     font-size: 2.2em;
     font-weight: bold;
+	background: url(logo.gif) no-repeat top right;
 }
 
 
@@ -16,8 +17,7 @@
 
 
 #content  #main {
-	padding: 60px 10px 0 220px;
-	background: url(logo.gif) no-repeat top right;
+	padding: 12px 10px 0 220px;
 	border-top: 25px solid #F3A217;
 }
 
@@ -33,7 +33,7 @@
 	margin-top: 0px;
 	margin-left: 0px;
 	border-top: 25px solid #EA7617;
-	line-height: 140%;
+	line-height: 150%;
 }
 
 #siteNav ul,#siteNav li{
